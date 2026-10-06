@@ -1,0 +1,161 @@
+{
+ "source": "/mnt/e/新方向研究/aoi_leak/aoi_matrix.json",
+ "n_aoi": 18,
+ "aois": [
+  "bj_south",
+  "chengdu_plain",
+  "dg_north",
+  "dunhuang_oasis",
+  "haikou_north",
+  "harbin_agri",
+  "hohhot_steppe",
+  "kunming_plateau",
+  "lanzhou_valley",
+  "linzhi_valley",
+  "qingdao_inland",
+  "sjz_north_agri",
+  "sz_east",
+  "urumqi_north",
+  "wuhan_lake",
+  "xiamen_inland",
+  "xian_plain",
+  "zhengzhou_east"
+ ],
+ "aoi_split": {
+  "bj_south": "val",
+  "chengdu_plain": "train",
+  "dg_north": "test",
+  "dunhuang_oasis": "test",
+  "haikou_north": "test",
+  "harbin_agri": "train",
+  "hohhot_steppe": "train",
+  "kunming_plateau": "val",
+  "lanzhou_valley": "train",
+  "linzhi_valley": "train",
+  "qingdao_inland": "val",
+  "sjz_north_agri": "train",
+  "sz_east": "test",
+  "urumqi_north": "train",
+  "wuhan_lake": "train",
+  "xiamen_inland": "test",
+  "xian_plain": "train",
+  "zhengzhou_east": "train"
+ },
+ "arch_mean_unweighted": {
+  "armD": 26.687023898912773,
+  "highresnet_cld": 26.847491551273194,
+  "breizhsr": 25.78597182861637
+ },
+ "pair": [
+  "armD",
+  "highresnet_cld"
+ ],
+ "pair_diff_mean": 0.16046765236042168,
+ "pair_diff_median": 0.4474429757147842,
+ "T1_n_pairs": 18,
+ "T1_wilcoxon_stat": 62.0,
+ "T1_wilcoxon_p": 0.32472991943359375,
+ "T1_rank_biserial": 0.27485380116959063,
+ "T1_n_nonzero": 18,
+ "T1_verdict": false,
+ "T1_boot_ci95": [
+  -0.2592903685869034,
+  0.5855546767443074
+ ],
+ "T1_boot_contains_zero": true,
+ "S1_flip_curve_armD_vs_highresnet_cld": {
+  "3": {
+   "a_win_rate": 0.3897058823529412,
+   "n_subset": 816
+  },
+  "4": {
+   "a_win_rate": 0.3415032679738562,
+   "n_subset": 3060
+  },
+  "5": {
+   "a_win_rate": 0.32936507936507936,
+   "n_subset": 8568
+  },
+  "6": {
+   "a_win_rate": 0.30532212885154064,
+   "n_subset": 18564
+  },
+  "7": {
+   "a_win_rate": 0.28535067873303166,
+   "n_subset": 31824
+  },
+  "8": {
+   "a_win_rate": 0.26059234882764293,
+   "n_subset": 43758
+  },
+  "9": {
+   "a_win_rate": 0.24006581653640477,
+   "n_subset": 48620
+  },
+  "10": {
+   "a_win_rate": 0.2133095662507427,
+   "n_subset": 43758
+  },
+  "11": {
+   "a_win_rate": 0.18765711412770236,
+   "n_subset": 31824
+  },
+  "12": {
+   "a_win_rate": 0.15363068304244776,
+   "n_subset": 18564
+  },
+  "13": {
+   "a_win_rate": 0.1308356676003735,
+   "n_subset": 8568
+  },
+  "14": {
+   "a_win_rate": 0.07777777777777778,
+   "n_subset": 3060
+  },
+  "15": {
+   "a_win_rate": 0.06862745098039216,
+   "n_subset": 816
+  },
+  "16": {
+   "a_win_rate": 0.0,
+   "n_subset": 153
+  },
+  "17": {
+   "a_win_rate": 0.0,
+   "n_subset": 18
+  },
+  "18": {
+   "a_win_rate": 0.0,
+   "n_subset": 1
+  }
+ },
+ "T2_flip_rate_k5": 0.32936507936507936,
+ "T2_n_subset_k5": 8568,
+ "T2_pass": true,
+ "S1_min_k_for_5pct": 16,
+ "pairwise_k5": {
+  "armD_vs_highresnet_cld": {
+   "p_win_rate": 0.32936507936507936,
+   "n_subset": 8568,
+   "mean_gap_dB": 0.1604676523604205
+  },
+  "armD_vs_breizhsr": {
+   "p_win_rate": 0.994281045751634,
+   "n_subset": 8568,
+   "mean_gap_dB": -0.9010520702964051
+  },
+  "highresnet_cld_vs_breizhsr": {
+   "p_win_rate": 0.99031279178338,
+   "n_subset": 8568,
+   "mean_gap_dB": -1.0615197226568256
+  }
+ },
+ "T3_var_aoi": 7.885747905219678,
+ "T3_var_model": 0.24858033779298386,
+ "T3_ratio": 31.72313617091823,
+ "T3_ratio_ci95": [
+  6.714339164687739,
+  307.21946001462516
+ ],
+ "T3_pass": true
+}

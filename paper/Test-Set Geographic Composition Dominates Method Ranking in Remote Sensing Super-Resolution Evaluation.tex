@@ -1,0 +1,504 @@
+%% =====================================================================
+%% IEEE GRSL submission source — paper 4
+%% Compile: pdflatex -> bibtex (or manual thebibliography) -> pdflatex x2
+%% Figures: figures/grsl/*.pdf  (place alongside or adjust \graphicspath)
+%% =====================================================================
+\documentclass[journal]{IEEEtran}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+%% Two search paths so the same file compiles both in the working tree
+%% (../figures/grsl) and after unzipping the submission package (figures/grsl).
+\graphicspath{{figures/grsl/}{../figures/grsl/}}
+
+%% The two standard compatibility shims
+\interdisplaylinepenalty=2500
+
+%% Tighten float placement so the paper fits five pages without cutting content.
+%% This is lossless: it only reclaims whitespace around figures.
+\setlength{\textfloatsep}{7pt plus 2pt minus 2pt}
+\setlength{\floatsep}{7pt plus 2pt minus 2pt}
+\setlength{\intextsep}{7pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{7pt plus 2pt minus 2pt}
+\setlength{\dblfloatsep}{7pt plus 2pt minus 2pt}
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.92}
+\renewcommand{\dbltopfraction}{0.95}
+\renewcommand{\dblfloatpagefraction}{0.92}
+
+\begin{document}
+
+\title{Test-Set Geographic Composition Dominates Method Ranking in
+Remote Sensing Super-Resolution Evaluation}
+
+%% Author block. Dawei Liu (advisor) is the corresponding author and carries the
+%% asterisk. All three authors share one affiliation. The affiliation and the
+%% corresponding-author contact are printed at the end of the manuscript (last
+%% page) rather than as a title-page footnote, following the authors' request.
+\author{Zhengyang~Chen,~Dawei~Liu\IEEEauthorrefmark{1},~and~Zhiheng~Liu}
+
+\maketitle
+
+\begin{abstract}
+Remote sensing super-resolution is evaluated on a small number of geographically
+distinct sites, and methods are ranked by differences of one or two tenths of a
+decibel. We ask how much of such a ranking is decided by which sites happen to be
+in the test set. Three multi-temporal Sentinel-2 networks, three seeds each, are
+evaluated on all 18 sites of the S2DS benchmark separately, and every possible
+$k$-site test subset is enumerated. The two strongest networks differ by 0.16~dB
+on average and are statistically indistinguishable at the site level (Wilcoxon
+$p = 0.32$, bootstrap 95\% CI $[-0.26, +0.59]$~dB). Over the 8568 five-site
+subsets the better network wins in 67.6\% of them, and the benchmark's own three
+partitions produce three different orderings of the same three architectures.
+Site variance exceeds model variance by 31.7 times, and the PSNR range across
+sites is 11.38~dB, which is 57 times the gap being resolved. A stable ranking
+requires at least 16 sites. The effect replicates on MuS2, a public benchmark
+with a different sensor pair and scale factor, where zero-training baselines
+still span 6.31~dB across seven tiles.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Super-resolution, evaluation protocol, multi-temporal Sentinel-2, benchmark
+design, geospatial sampling.
+\end{IEEEkeywords}
+
+%% ---------------------------------------------------------------- I
+\section{Introduction}
+
+Super-resolution (SR) for remote sensing is evaluated the way natural-image SR
+is evaluated \cite{deepsum2020,diffusionsat2024}. A fixed test split is assembled,
+every method is run over it, and a single mean PSNR is reported. The architecture
+that wins by a tenth of a decibel is described as the better one.
+
+This convention carries an assumption that is rarely examined, namely that the
+test split is large and varied enough for its particular composition not to decide
+the outcome. In natural-image SR the assumption is defensible, because benchmark
+splits contain hundreds or thousands of images drawn from the same photographic
+distribution. Remote sensing data are different. A benchmark for satellite SR is
+assembled from a small number of geographical sites \cite{mus2}. Each site is
+internally homogeneous, and the sites differ from one another in climate, terrain,
+land cover and atmospheric conditions. The number of independent geographical
+units is often five or fewer.
+
+Two properties follow. Images from one site are spatially correlated, so samples
+drawn from a single site are not independent draws from a distribution over
+scenes. The difficulty of the task itself varies with the site, because texture,
+contrast and cloud frequency are governed by geography. Both properties push in
+the same direction, and the number of sites determines how much of that dependence
+is averaged out.
+
+We test this directly. Rather than treating the benchmark as a single number, we
+evaluate every model on every site separately and ask what happens to the rankings
+as the site composition of the test set changes. The experiment uses nine existing
+checkpoints.
+
+The contributions are the following. We quantify site-level dispersion in a
+multi-temporal Sentinel-2 SR benchmark, where the PSNR across 18 sites spans
+11.38~dB while the two strongest networks differ by 0.16~dB. We decompose variance
+between sites and between models, finding a ratio of 31.7. We enumerate every
+five-site test subset and show that the ranking of the two strongest networks
+flips in 32.9\% of them, and that at least 16 sites are needed for stability. We
+replicate the effect on MuS2, a benchmark built by others with a different sensor
+pair and scale factor. Finally, we identify a second way a benchmark can mislead,
+in that the fraction of valid target pixels falls as low as 1.5\% in one site.
+
+%% ---------------------------------------------------------------- II
+\section{Data and Methods}
+
+\subsection{S2DS Benchmark}
+
+S2DS is a multi-temporal SR benchmark built from real Sentinel-2 Level-2A
+acquisitions \cite{drusch2012,s2psd}. It contains 18 sites partitioned by geography
+into 10 training, 3 validation and 5 test sites. Each sample provides $T = 12$
+low-resolution frames acquired on distinct dates at 40~m, the bands B02, B03, B04
+and B08, per-frame per-pixel cloud fraction and per-frame signed time offsets,
+together with a 10~m target image for the reference date. The scale factor is 4.
+The split is by site and not by patch, so training and test samples come from
+disjoint areas. The evaluated splits contain 873, 180 and 423 samples respectively.
+
+\subsection{Models}
+
+Three architecture families are used, each with three seeds. Mamba-MISR carries
+inter-frame interaction in a selective state-space module \cite{mamba} and gates
+fusion by per-pixel observation reliability, with temporal offsets entering the
+gate only. HighRes-Net-cld is the recursive fusion architecture of
+\cite{deudon2020} extended with cloud-mask conditioning. BreizhSR is a lightweight
+multi-frame network \cite{okabayashi2024} used as a lower-capacity reference. All
+twelve checkpoints are fixed at 30\,000 iterations, with seeds 2026, 2027 and 2028.
+
+\subsection{Evaluation Protocol}
+
+PSNR is computed over the valid mask, defined as pixels whose target-date cloud
+label is clear \cite{cmix}, following the standard image-quality measures of
+\cite{ssim2004}. Per-site values are unweighted means over the samples of that
+site. The two aggregation conventions differ, and we state which is used at each
+point, because on the test split the sample-weighted mean is 27.2285~dB for
+Mamba-MISR seed 2026 while averaging the five site means gives 27.0993~dB, a
+difference of 0.1293~dB arising from unequal sample counts. Samples with an empty
+valid mask are excluded rather than counted as zero, leaving 1314 of 1476 samples
+for the network comparison.
+
+\subsection{Analysis Design}
+
+Every model--seed combination is evaluated separately on each of the 18 sites,
+giving a $9 \times 18$ matrix of site-level PSNR. Variance across site means and
+variance across model--seed means are computed from that matrix, and the ratio is
+reported with a bootstrap 95\% confidence interval obtained by resampling both
+sites and model--seed combinations over 2000 replicates.
+
+For a pair of networks the win rate of the first is computed by exact enumeration
+of every subset of size $k$ drawn from the 18 sites, for $k$ from 3 to 18. With
+$\binom{18}{5} = 8568$ the enumeration is exact and no sampling approximation is
+used. The paired site-level difference is tested with a Wilcoxon signed-rank test
+\cite{wilcoxon1945}, with the rank-biserial correlation as effect size and a
+bootstrap confidence interval over the 18 sites. The unit of analysis is the site
+and not the sample, because samples within one site are not independent. Means and
+medians are reported together, since the distribution of site-level differences is
+skewed \cite{lakens2017}.
+
+\subsection{External Replication on MuS2}
+
+MuS2 \cite{mus2} is a public multi-image SR benchmark built by others from
+Sentinel-2 as the low-resolution source and higher-resolution multispectral
+imagery as the reference, with a scale factor of 3. The local copy holds 91 scenes
+over 7 MGRS tiles.
+
+Two settings are used and reported separately. In Setting~A the reference image is
+downsampled by 3 and reconstructed with nearest, bilinear or bicubic interpolation.
+Ground truth and prediction then live on the same radiometric scale, so no
+registration or band-matching uncertainty enters, and the quantity measured is how
+hard the fabric of a given tile is to reconstruct. In Setting~B a Sentinel-2 band
+is upsampled and compared against the reference band, after a quantile match that
+maps the prediction onto the reference scale. Registration between the two products
+is not independently verified, so the Setting~B numbers carry that uncertainty and
+are quoted alongside Setting~A rather than on their own.
+
+%% ---------------------------------------------------------------- III
+\section{Results}
+
+\subsection{Site-Level Dispersion}
+
+Fig.~\ref{fig:aoi} shows the valid PSNR of Mamba-MISR averaged over nine
+model--seed combinations for each of the 18 sites. The values span 11.38~dB, from
+18.56~dB at \texttt{qingdao\_inland} to 29.94~dB at \texttt{sjz\_north\_agri}, with
+a standard deviation of 2.81~dB. The three partition memberships behave as one
+population. The 10 training sites average 27.33~dB, the 3 validation sites
+23.75~dB and the 5 test sites 26.27~dB, and the highest and lowest sites are not
+separated by partition. \texttt{dunhuang\_oasis}, a test site, ranks third, while
+\texttt{harbin\_agri}, a training site, ranks second from the bottom. Considered
+per architecture rather than averaged, the spans across the same sites are 12.45,
+13.08 and 10.96~dB, so the dispersion is not an artefact of averaging.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{fig1_aoi_psnr.pdf}
+\caption{Valid PSNR at each of the 18 S2DS sites, averaged over nine model--seed
+combinations and sorted by score. Colour marks the training, validation and test
+partitions. Site identifiers follow Table~I. The 11.38~dB span across sites exceeds
+the 0.16~dB gap between the two strongest networks by a factor of 71.}
+\label{fig:aoi}
+\end{figure}
+
+A partition effect does exist but is far smaller. Evaluating Mamba-MISR seed 2026
+on the training partition gives 27.4640~dB and on the test partition 27.2285~dB, a
+difference of 0.2355~dB, which is within the range that single-seed training noise
+produces on this benchmark.
+
+\subsection{Variance Attribution}
+
+Variance across site means is 7.886~dB$^2$, a standard deviation of 2.81~dB.
+Variance across model--seed means is 0.249~dB$^2$, a standard deviation of 0.50~dB.
+The ratio is 31.7 with a bootstrap 95\% confidence interval of 6.7 to 307. The
+interval is wide because 18 sites and 9 model--seed combinations give limited
+resolution at the upper end, but its lower bound already places site-to-site
+variation an order of magnitude above model-to-model variation. The ratio depends
+on which models are compared, and Section~\ref{sec:repl} shows a public benchmark
+on which the same computation over four zero-training baselines returns a ratio
+below one. What is stable across datasets is the site-level dispersion, not the
+ratio.
+
+\subsection{Ranking Instability}
+
+Comparing Mamba-MISR against HighRes-Net-cld, their site-level means over 18 sites
+are 26.6870~dB and 26.8475~dB. The paired difference has a mean of 0.1605~dB and a
+median of 0.4474~dB. A Wilcoxon signed-rank test gives $p = 0.3247$ with a
+rank-biserial correlation of 0.275, and the bootstrap 95\% confidence interval of
+the mean difference is $[-0.2593, +0.5856]$~dB, which contains zero. The two
+networks are statistically indistinguishable at the site level.
+
+Fig.~\ref{fig:flip} shows the consequence. Enumerating all 8568 five-site subsets,
+HighRes-Net-cld scores higher in 67.6\% of them, so Mamba-MISR wins 32.9\%. A study
+drawing a different five sites would have reported the opposite ordering in one
+case out of three. The comparison is informative because it sits at a specific gap
+size. Two further pairs on the same matrix differ by far more. Mamba-MISR exceeds
+BreizhSR by 0.90~dB and wins in 99.43\% of five-site subsets, and HighRes-Net-cld
+exceeds BreizhSR by 1.06~dB and wins in 99.03\%. A gap near 0.16~dB produces a win
+rate near one third, while gaps near one decibel produce rates above 99\%, which
+locates the transition region.
+
+The absolute level is equally sensitive. Drawing five sites at random, the mean
+PSNR of the nine model--seed combinations ranges from 23.40 to 29.94~dB, with a
+standard deviation of 1.14~dB and a span of 6.54~dB. Raising the subset size to ten
+narrows the standard deviation to 0.62~dB.
+
+A third view comes from the partition the benchmark defines, which was fixed before
+this analysis. Ranking the three architectures within each partition gives three
+different orderings, as Table~\ref{tab:main} shows. On the 10 training
+sites HighRes-Net-cld leads with 28.20~dB against 27.29~dB. On the 5 test sites the
+order reverses, with Mamba-MISR at 27.06~dB against 26.11~dB. On the 3 validation
+sites Mamba-MISR leads at 24.07~dB while HighRes-Net-cld falls to last place at
+23.56~dB, below BreizhSR at 23.64~dB. The validation and test partitions are
+equally unseen by all three models, so the reversal between them is attributable
+to which sites they contain and to nothing else.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{fig2_flip_curve.pdf}
+\caption{Win rate of the first method as the number of test sites $k$ grows, by
+exact enumeration of all $\binom{18}{k}$ subsets. The shaded band marks the region
+in which the ranking is unstable. A gap of 0.16~dB leaves the ordering undecided
+until $k = 16$, while gaps near one decibel are stable from $k = 3$.}
+\label{fig:flip}
+\end{figure}
+
+\begin{table}[!t]
+\caption{Valid PSNR (dB) at Each S2DS Site, Mean Over Three Seeds}
+\label{tab:main}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.6pt}
+\renewcommand{\arraystretch}{0.90}
+\begin{tabular}{lcccc}
+\toprule
+Site & Split & MISR & HN-cld & BreizhSR \\
+\midrule
+sjz north agri   & Tr & 29.83 & 31.05 & 28.93 \\
+xian plain       & Tr & 29.27 & 30.48 & 28.37 \\
+chengdu plain    & Tr & 31.09 & 31.30 & 25.64 \\
+lanzhou valley   & Tr & 29.16 & 29.85 & 28.94 \\
+dunhuang oasis   & Te & 29.78 & 28.12 & 29.77 \\
+linzhi valley    & Tr & 28.91 & 29.62 & 28.41 \\
+bj south         & Va & 27.84 & 27.26 & 27.36 \\
+hohhot steppe    & Tr & 26.15 & 27.18 & 26.55 \\
+zhengzhou east   & Tr & 26.13 & 27.21 & 26.15 \\
+dg north         & Te & 27.01 & 26.20 & 24.61 \\
+sz east          & Te & 26.33 & 25.82 & 25.24 \\
+haikou north     & Te & 26.48 & 25.72 & 24.95 \\
+kunming plateau  & Va & 25.72 & 25.18 & 24.74 \\
+urumqi north     & Tr & 24.68 & 25.77 & 24.84 \\
+xiamen inland    & Te & 25.70 & 24.69 & 23.59 \\
+wuhan lake       & Tr & 24.15 & 25.36 & 23.76 \\
+harbin agri      & Tr & 23.51 & 24.19 & 23.49 \\
+qingdao inland   & Va & 18.64 & 18.23 & 18.82 \\
+\midrule
+Range            &    & \textbf{12.45} & \textbf{13.08} & \textbf{10.96} \\
+Train mean (10)  &    & 27.29 & 28.20 & 26.51 \\
+Val mean (3)     &    & 24.07 & 23.56 & 23.64 \\
+Test mean (5)    &    & 27.06 & 26.11 & 25.63 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Scene-Level View}
+
+The same comparison at scene level, over the 1314 samples that retain a non-empty
+valid mask for both networks, gives Mamba-MISR the better score in 36.6\% of scenes
+and a 0.195~dB loss on average (Fig.~\ref{fig:scene}). The direction and magnitude
+agree with the site-level result. Stratifying scenes by the PSNR of Mamba-MISR does
+not explain the pattern, since the win rate by quartile, from hardest to easiest,
+is 0.343, 0.366, 0.424 and 0.331 and the correlation with scene difficulty is 0.17.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{fig3_scene_winrate.pdf}
+\caption{(a) Per-scene PSNR difference against the PSNR of Mamba-MISR, with
+quartile means overlaid. (b) Mamba-MISR win rate by difficulty quartile. The
+advantage is not concentrated in easy or hard scenes.}
+\label{fig:scene}
+\end{figure}
+
+\subsection{How Many Sites Are Enough, and External Replication}
+\label{sec:repl}
+
+Fig.~\ref{fig:flip} also traces the win rate as the subset size grows. The values
+for Mamba-MISR against HighRes-Net-cld are 0.390 at $k = 3$, 0.329 at $k = 5$,
+0.261 at $k = 8$, 0.213 at $k = 10$, 0.154 at $k = 12$, 0.069 at $k = 15$ and
+0.000 at $k = 16$. The win rate crosses the 5\% threshold only at $k = 16$. For a
+gap of this size twelve sites would still leave a 15\% chance of reporting the
+wrong winner, and the five-site test sets in routine use sit far outside the stable
+region.
+
+The replication uses a benchmark built by others, from a different sensor pair, at
+a different scale factor, and with no model training at all. Under Setting~A the
+PSNR range across the seven MGRS tiles is 5.54~dB for nearest-neighbour, 6.92~dB
+for bicubic and 6.97~dB for bilinear, as Fig.~\ref{fig:mus2}(a) shows, and the
+pattern holds at both wavelengths tested. Averaged over the six Setting~A baselines
+the range is 6.31~dB. Under Setting~B the range is 14.13 and 8.77~dB for the two
+bands, averaging 11.45~dB.
+
+Fig.~\ref{fig:mus2}(b) places these ranges beside the S2DS value of 11.38~dB and
+beside the 0.05 to 0.20~dB band occupied by typical method gaps. Setting~A, which
+carries no registration uncertainty, sits at 32 times the upper end of that band,
+and Setting~B and S2DS sit at 57 times.
+
+Site variance on MuS2 has a standard deviation of 2.87~dB in band b3 and 2.70~dB in
+b6, closely matching the 2.81~dB of S2DS. The two bands are analysed separately
+because they differ by 5 to 8~dB in absolute level.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{fig4_mus2.pdf}
+\caption{(a) Self-consistent PSNR of three zero-training baselines at each of the
+seven MuS2 tiles. (b) Range across sites for S2DS, MuS2 Setting~A and MuS2
+Setting~B, against the 0.05--0.20~dB band occupied by typical method gaps.}
+\label{fig:mus2}
+\end{figure}
+
+\subsection{Valid-Pixel Fraction}
+
+A second and independent way a benchmark can mislead emerged during the site-level
+analysis. Fig.~\ref{fig:valid} shows that the fraction of valid, cloud-free pixels
+in the target image varies by a factor of seven across the 18 sites, from 0.147 to
+0.994. The scene-level distribution is more extreme. At \texttt{qingdao\_inland}
+the median valid fraction is 0.015, so more than half of its scenes have almost no
+usable pixels, and its PSNR is the lowest of the 18 sites at 18.56~dB. The
+relationship between valid fraction and PSNR is positive but partial, with a
+Pearson correlation across sites of 0.54, and \texttt{qingdao\_inland} sits six to
+eight decibels below the trend. The valid fraction accounts for part of the site's
+weakness and not all of it, and the remaining cause is not identified here. What
+matters for reporting is that a mean over 1.5\% of a scene carries a variance that
+no number of scenes removes when the same acquisition conditions recur.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{fig5_validfrac.pdf}
+\caption{Valid (cloud-free) pixel fraction against valid PSNR for the 18 sites.
+The relationship is positive but partial, and the lowest-scoring site sits well
+below the trend.}
+\label{fig:valid}
+\end{figure}
+
+%% ---------------------------------------------------------------- IV
+\section{Discussion}
+
+The two strongest networks in this study differ by 0.16~dB. Their site-level paired
+difference is not distinguishable from zero, and over five-site test subsets the
+ordering reverses in one case out of three. The same networks vary by 11.38~dB
+across sites, and the mean score moves by 6.54~dB depending on which five sites are
+drawn. The last two figures are one to two orders of magnitude larger than the
+quantity being resolved. The fragile quantity is the narrow gap, which is the
+regime that method papers occupy when they report an improvement.
+
+A benchmark score has always been understood to depend on its test data. The
+quantities reported here give that dependence a magnitude, specific to a benchmark
+family and to a gap size. How much does the score move when the test sites change.
+How many sites are needed before a ranking of a given gap size settles. At what gap
+size does the ranking stop depending on site composition. The answers here are
+6.54~dB, 16 sites, and somewhere between 0.16 and 0.90~dB. The MuS2 replication
+matters for the same reason, since the effect appears on a benchmark built by other
+authors with different sensors and a different scale factor, and the magnitude
+differs in the direction that the two benchmarks' geographical extents predict.
+
+Four reporting practices follow. Report per-site scores, since a single aggregate
+conceals a distribution whose spread exceeds the effect being claimed, and the
+per-site values cost a few lines of a table. Run leave-one-site-out, which shows
+whether the headline number survives the removal of any single site. Report rank
+stability rather than a single ordering, since for two methods within a decibel of
+each other a win rate over plausible test sets carries more information than a
+rank. Treat the number of sites as a design parameter, because a test set of three
+to five geographically distinct sites cannot resolve differences below roughly one
+decibel on this benchmark. None of the four requires extra training.
+
+%% ---------------------------------------------------------------- V
+\section{Conclusion}
+
+A benchmark score in remote sensing SR is decided to a large extent by which sites
+the benchmark happens to contain. On a multi-temporal Sentinel-2 benchmark, methods
+differing by 0.16~dB exchange places in one third of five-site test sets,
+site-to-site variance exceeds model-to-model variance by 31.7 times, and the
+benchmark's own three partitions yield three different orderings of the same
+models. At least 16 sites are needed before a gap of this size becomes resolvable.
+The effect reproduces on an independently built public benchmark where no model is
+trained at all. Reporting per-site scores, running leave-one-site-out, and stating
+the rank stability of narrow gaps would make these limits visible at no
+experimental cost.
+
+%% References are ordered by first citation, as IEEE requires.
+\begin{thebibliography}{12}
+
+\bibitem{deepsum2020}
+A.~B. Molini, D.~Valsesia, G.~Fracastoro, and E.~Magli, ``DeepSUM: Deep neural
+network for super-resolution of unregistered multitemporal images,'' \emph{IEEE
+Trans. Geosci. Remote Sens.}, vol.~58, no.~5, pp.~3644--3656, May 2020.
+
+\bibitem{diffusionsat2024}
+S.~Khanna, P.~Liu, L.~Zhou, C.~Meng, R.~Rombach, M.~Burke, D.~B. Lobell, and
+S.~Ermon, ``DiffusionSat: A generative foundation model for satellite imagery,''
+in \emph{Proc. Int. Conf. Learning Representations (ICLR)}, 2024.
+
+\bibitem{mus2}
+P.~Kowaleczko \emph{et al.}, ``MuS2: A real-world benchmark for Sentinel-2
+multi-image super-resolution,'' \emph{Sci. Data}, vol.~10, 2023, Art.~712.
+
+\bibitem{drusch2012}
+M.~Drusch, U.~Del Bello, S.~Carlier, O.~Colin, V.~Fernandez, F.~Gascon,
+\emph{et al.}, ``Sentinel-2: ESA's optical high-resolution mission for GMES
+operational services,'' \emph{Remote Sens. Environ.}, vol.~120, pp.~25--36,
+May 2012.
+
+\bibitem{s2psd}
+ESA, \emph{Sentinel-2 Products Specification Document}, issue 14.9, 2023.
+
+\bibitem{mamba}
+A.~Gu and T.~Dao, ``Mamba: Linear-time sequence modeling with selective state
+spaces,'' arXiv:2312.00752, Dec.~2023.
+
+\bibitem{deudon2020}
+M.~Deudon, A.~Kalaitzis, S.~Gowda, \emph{et al.}, ``HighRes-net: Recursive fusion
+for multi-frame super-resolution of satellite imagery,'' in \emph{Proc. IEEE/CVF
+CVPR Workshops}, 2020, pp.~298--307.
+
+\bibitem{okabayashi2024}
+A.~Okabayashi, N.~Audebert, S.~Donike, and C.~Pelletier, ``Cross-sensor
+super-resolution of irregularly sampled Sentinel-2 time series,'' in \emph{Proc.
+IEEE/CVF CVPR Workshops (EarthVision)}, 2024, pp.~502--511.
+
+\bibitem{cmix}
+S.~Skakun, J.~Wevers, C.~Brockmann, G.~Doxani, \emph{et al.}, ``Cloud Mask
+Intercomparison eXercise (CMIX): An evaluation of cloud masking algorithms for
+Landsat~8 and Sentinel-2,'' \emph{Remote Sens. Environ.}, vol.~274, 2022,
+Art.~112990.
+
+\bibitem{ssim2004}
+Z.~Wang, A.~C. Bovik, H.~R. Sheikh, and E.~P. Simoncelli, ``Image quality
+assessment: from error visibility to structural similarity,'' \emph{IEEE Trans.
+Image Process.}, vol.~13, no.~4, pp.~600--612, Apr.~2004.
+
+\bibitem{wilcoxon1945}
+F.~Wilcoxon, ``Individual comparisons by ranking methods,'' \emph{Biometrics
+Bulletin}, vol.~1, no.~6, pp.~80--83, Dec.~1945.
+
+\bibitem{lakens2017}
+D.~Lakens, ``Equivalence tests: A practical primer for $t$ tests, correlations,
+and meta-analyses,'' \emph{Soc. Psychol. Personal. Sci.}, vol.~8, no.~4,
+pp.~355--362, 2017.
+
+\end{thebibliography}
+
+%% Title-page footnote material moved here (end of the manuscript, last page).
+\vfill
+\noindent{\footnotesize\raggedright Manuscript received XXXX; revised XXXX. The
+authors are with the Engineering University of PAP, Xi'an~710000, China.\\
+$^*$Corresponding author: Dawei Liu (e-mail: wjmicheal@163.com).\\
+Code and the per-site evaluation tables are available at
+\url{https://github.com/[[FILL-REPO]]}.}
+
+\end{document}

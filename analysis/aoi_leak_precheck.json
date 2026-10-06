@@ -1,0 +1,166 @@
+{
+ "runname": "s2dsV2_armD_s2026/ckpt_030000.pt",
+ "nsub": 0,
+ "splits": {
+  "train": {
+   "n_total": 873,
+   "n_eval": 873,
+   "aois": [
+    "chengdu_plain",
+    "harbin_agri",
+    "hohhot_steppe",
+    "lanzhou_valley",
+    "linzhi_valley",
+    "sjz_north_agri",
+    "urumqi_north",
+    "wuhan_lake",
+    "xian_plain",
+    "zhengzhou_east"
+   ],
+   "psnr_valid": 27.46403432198905,
+   "psnr_hard": 27.15208799548151
+  },
+  "val": {
+   "n_total": 180,
+   "n_eval": 180,
+   "aois": [
+    "bj_south",
+    "kunming_plateau",
+    "qingdao_inland"
+   ],
+   "psnr_valid": 25.267266489689657,
+   "psnr_hard": 22.573967157903557
+  },
+  "test": {
+   "n_total": 423,
+   "n_eval": 423,
+   "aois": [
+    "dg_north",
+    "dunhuang_oasis",
+    "haikou_north",
+    "sz_east",
+    "xiamen_inland"
+   ],
+   "psnr_valid": 27.22854951706117,
+   "psnr_hard": 26.89628149467493
+  }
+ },
+ "per_aoi": {
+  "chengdu_plain": {
+   "split": "train",
+   "psnr_valid": 31.145037017588507,
+   "psnr_hard": 31.08940220795203,
+   "n": 81
+  },
+  "harbin_agri": {
+   "split": "train",
+   "psnr_valid": 23.517566776686063,
+   "psnr_hard": 22.816863999203626,
+   "n": 90
+  },
+  "hohhot_steppe": {
+   "split": "train",
+   "psnr_valid": 26.136585472753623,
+   "psnr_hard": 27.536807431634976,
+   "n": 90
+  },
+  "lanzhou_valley": {
+   "split": "train",
+   "psnr_valid": 29.168067626296054,
+   "psnr_hard": 29.767481159081036,
+   "n": 81
+  },
+  "linzhi_valley": {
+   "split": "train",
+   "psnr_valid": 28.925696122046322,
+   "psnr_hard": 28.740496487522197,
+   "n": 90
+  },
+  "sjz_north_agri": {
+   "split": "train",
+   "psnr_valid": 30.13877754195529,
+   "psnr_hard": 28.006081655929027,
+   "n": 90
+  },
+  "urumqi_north": {
+   "split": "train",
+   "psnr_valid": 24.72342054470075,
+   "psnr_hard": 24.72970032199701,
+   "n": 90
+  },
+  "wuhan_lake": {
+   "split": "train",
+   "psnr_valid": 24.35186824720249,
+   "psnr_hard": 24.350171632509248,
+   "n": 81
+  },
+  "xian_plain": {
+   "split": "train",
+   "psnr_valid": 29.38479267943691,
+   "psnr_hard": 30.082384202993126,
+   "n": 90
+  },
+  "zhengzhou_east": {
+   "split": "train",
+   "psnr_valid": 26.179837542786043,
+   "psnr_hard": 26.670294504030824,
+   "n": 90
+  },
+  "bj_south": {
+   "split": "val",
+   "psnr_valid": 27.734393357116,
+   "psnr_hard": 26.069497004493318,
+   "n": 90
+  },
+  "kunming_plateau": {
+   "split": "val",
+   "psnr_valid": 25.79291597174355,
+   "psnr_hard": NaN,
+   "n": 27
+  },
+  "qingdao_inland": {
+   "split": "val",
+   "psnr_valid": 18.59749403654683,
+   "psnr_hard": 17.330672388018915,
+   "n": 63
+  },
+  "dg_north": {
+   "split": "test",
+   "psnr_valid": 26.9361091923206,
+   "psnr_hard": 26.420534559384564,
+   "n": 90
+  },
+  "dunhuang_oasis": {
+   "split": "test",
+   "psnr_valid": 30.106664327310536,
+   "psnr_hard": 29.826290201591338,
+   "n": 90
+  },
+  "haikou_north": {
+   "split": "test",
+   "psnr_valid": 26.789544060299125,
+   "psnr_hard": 26.87975064321066,
+   "n": 81
+  },
+  "sz_east": {
+   "split": "test",
+   "psnr_valid": 26.06731868361418,
+   "psnr_hard": 26.035821097459213,
+   "n": 81
+  },
+  "xiamen_inland": {
+   "split": "test",
+   "psnr_valid": 25.596692700384224,
+   "psnr_hard": 25.73521047521033,
+   "n": 81
+  }
+ },
+ "delta_leak_valid": 0.2354848049278786,
+ "delta_leak_hard": 0.2558065008065782,
+ "aoi_std_valid": 2.978122419224829,
+ "aoi_range_valid": 12.547542981041676,
+ "L0_canon_diff": 4.95170611714002e-05,
+ "L0_pass": true,
+ "L1_verdict": "GRAY",
+ "L2_note": "aoi_std=2.9781 aoi_range=12.5475 (n_aoi=18)"
+}

@@ -1,0 +1,25 @@
+n_aoi=18
+aoi-level: mean=26.7385 std=2.9781 range=12.5475 min=18.5975 max=31.1450
+subset k= 5: mean=26.7216 std=1.1363 min=23.3967 max=29.9402 span=6.5435 p5=24.7446 p95=28.4488
+subset k=10: mean=26.7368 std=0.6228 min=25.0451 max=28.6509 span=3.6058 p5=25.7343 p95=27.7584
+subset k=18: mean=26.7385 std=0.0000 min=26.7385 max=26.7385 span=0.0000 p5=26.7385 p95=26.7385
+
+per-AOI sorted (valid PSNR):
+  chengdu_plain        train   31.1450  n=81
+  sjz_north_agri       train   30.1388  n=90
+  dunhuang_oasis       test    30.1067  n=90
+  xian_plain           train   29.3848  n=90
+  lanzhou_valley       train   29.1681  n=81
+  linzhi_valley        train   28.9257  n=90
+  bj_south             val     27.7344  n=90
+  dg_north             test    26.9361  n=90
+  haikou_north         test    26.7895  n=81
+  zhengzhou_east       train   26.1798  n=90
+  hohhot_steppe        train   26.1366  n=90
+  sz_east              test    26.0673  n=81
+  kunming_plateau      val     25.7929  n=27
+  xiamen_inland        test    25.5967  n=81
+  urumqi_north         train   24.7234  n=90
+  wuhan_lake           train   24.3519  n=81
+  harbin_agri          train   23.5176  n=90
+  qingdao_inland       val     18.5975  n=63
